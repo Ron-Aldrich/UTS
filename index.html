@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Understanding the Self — Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f7f9;--surface:#ffffff;--ink:#1b2130;--muted:#5a6275;--line:#dfe3ea;
+  --accent:#2c4fd1;--accent-ink:#ffffff;--accent-soft:#e8edfc;--good:#1f7a4d;--good-soft:#e3f4ea;--bad:#b3382c;--bad-soft:#fbe9e6;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151c;--surface:#1a1e28;--ink:#e8ebf2;--muted:#98a0b3;--line:#2a3040;
+    --accent:#8aa2ff;--accent-ink:#0f1220;--accent-soft:#232b4a;--good:#5cc58f;--good-soft:#17302a;--bad:#f08a7e;--bad-soft:#3a1f1c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12151c;--surface:#1a1e28;--ink:#e8ebf2;--muted:#98a0b3;--line:#2a3040;
+  --accent:#8aa2ff;--accent-ink:#0f1220;--accent-soft:#232b4a;--good:#5cc58f;--good-soft:#17302a;--bad:#f08a7e;--bad-soft:#3a1f1c;
+}
+html{height:100%;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:10px 20px}
+.brand{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+.tabs{display:flex;gap:4px;margin-left:12px}
+.tab{background:none;border:0;padding:8px 14px;border-radius:8px;color:var(--muted);font-weight:500}
+.tab[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.spacer{flex:1}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:8px;padding:7px 11px;color:var(--muted)}
+.menu-btn{display:none}
+
+/* layout */
+.shell{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:270px minmax(0,1fr);gap:40px;padding:28px 20px 80px}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 74px);align-self:start;max-height:calc(100vh - 100px);overflow:auto;padding-right:6px}
+.search{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);margin-bottom:16px}
+.grp{font-size:13px;color:var(--muted);font-weight:600;margin:18px 0 6px}
+.nav a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:15px}
+.nav a:hover{background:var(--accent-soft)}
+.nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.tick{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none}
+.done .tick{background:var(--good);border-color:var(--good)}
+
+/* content */
+.intro h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5.5vw,56px);line-height:1.05;letter-spacing:-.02em;margin:0 0 12px;max-width:16ch}
+.intro p{color:var(--muted);max-width:56ch;margin:0 0 18px;font-size:17px}
+.prog{display:flex;align-items:center;gap:12px;margin-bottom:36px;font-size:14px;color:var(--muted)}
+.bar{flex:0 1 240px;height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--good);transition:width .3s}
+.topic{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px clamp(18px,4vw,36px);margin-bottom:24px}
+.topic-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.topic h2{font-family:var(--serif);font-weight:600;font-size:30px;line-height:1.15;margin:0 0 4px;letter-spacing:-.01em}
+.unit{color:var(--muted);font-size:14px;margin:0 0 14px}
+.lead{font-family:var(--serif);font-size:19px;line-height:1.55;max-width:64ch;margin:0 0 8px}
+.topic h3{font-size:16px;font-weight:600;margin:26px 0 8px}
+.topic p{max-width:68ch;margin:8px 0}
+.topic ul,.topic ol{max-width:68ch;padding-left:22px;margin:8px 0}
+.topic li{margin:4px 0}
+.topic li::marker{color:var(--accent)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-weight:600;font-size:14px}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600;white-space:nowrap}
+.note{background:var(--accent-soft);border-radius:10px;padding:12px 16px;max-width:68ch;margin:16px 0 4px;font-size:15px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;font-weight:500}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn[aria-pressed="true"]{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.empty{color:var(--muted);padding:40px 0}
+
+/* study views */
+.study{max-width:720px;margin:0 auto;padding:32px 20px 80px}
+.study h1{font-family:var(--serif);font-weight:500;font-size:36px;margin:0 0 6px;letter-spacing:-.01em}
+.study .sub{color:var(--muted);margin:0 0 20px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+select{padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.count{color:var(--muted);font-size:14px}
+.card{perspective:1200px;margin-bottom:16px}
+.card-in{position:relative;min-height:260px;transition:transform .45s;transform-style:preserve-3d;cursor:pointer}
+.card.flip .card-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px;display:flex;flex-direction:column;justify-content:center}
+.face.back{transform:rotateY(180deg);background:var(--accent-soft);border-color:transparent}
+.face small{color:var(--muted);position:absolute;top:16px;left:24px}
+.face .q{font-family:var(--serif);font-size:24px;line-height:1.35}
+.face .a{font-size:17px;line-height:1.55}
+.ctrl{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin:10px 0}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.ok{background:var(--good-soft);border-color:var(--good)}
+.opt.no{background:var(--bad-soft);border-color:var(--bad)}
+.qtext{font-family:var(--serif);font-size:24px;line-height:1.35;margin:8px 0 12px}
+.why{background:var(--accent-soft);border-radius:10px;padding:12px 16px;margin:14px 0}
+.score{font-family:var(--serif);font-size:56px;margin:8px 0}
+[hidden]{display:none!important}
+
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr;gap:0}
+  .side{position:fixed;inset:0 0 0 0;top:calc(env(safe-area-inset-top,0px) + 56px);background:var(--bg);max-height:none;padding:20px;z-index:15;display:none}
+  .side.open{display:block}
+  .menu-btn{display:inline-block}
+  .tabs{margin-left:0}
+  .brand{display:none}
+  .top-in{gap:8px;padding:8px 12px}
+  .topic h2{font-size:26px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <button class="icon-btn menu-btn" id="menuBtn" aria-label="Toggle topic list" aria-expanded="false">Topics</button>
+    <span class="brand">UTS Reviewer</span>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="read" aria-selected="true">Read</button>
+      <button class="tab" role="tab" data-view="cards" aria-selected="false">Flashcards</button>
+      <button class="tab" role="tab" data-view="quiz" aria-selected="false">Quiz</button>
+    </div>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="themeBtn" aria-label="Switch light or dark theme">Theme</button>
+  </div>
+</header>
+
+<main id="readView" class="shell">
+  <aside class="side" id="side">
+    <input class="search" id="search" type="search" placeholder="Search the reviewer" aria-label="Search the reviewer">
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <div>
+    <section class="intro">
+      <h1>Understanding the Self</h1>
+      <p>A review of Unit 2 (the six selves) and Unit 3 (managing and caring for the self), built from your uploaded modules and slides.</p>
+      <div class="prog"><div class="bar"><i id="barFill"></i></div><span id="progText"></span></div>
+    </section>
+    <div id="topics"></div>
+  </div>
+</main>
+
+<section id="cardsView" class="study" hidden>
+  <h1>Flashcards</h1>
+  <p class="sub">Tap the card or press Space to flip. Use the arrow keys to move.</p>
+  <div class="row"><select id="cardTopic" aria-label="Filter flashcards by topic"></select><span class="count" id="cardCount"></span></div>
+  <div class="card" id="card"><div class="card-in" id="cardIn" tabindex="0" role="button" aria-label="Flip card">
+    <div class="face"><small>Question</small><div class="q" id="cardQ"></div></div>
+    <div class="face back"><small>Answer</small><div class="a" id="cardA"></div></div>
+  </div></div>
+  <div class="ctrl">
+    <button class="btn" id="prevCard">Previous</button>
+    <button class="btn" id="shuffleCard">Shuffle</button>
+    <button class="btn pri" id="nextCard">Next</button>
+  </div>
+</section>
+
+<section id="quizView" class="study" hidden>
+  <h1>Quiz</h1>
+  <p class="sub">Multiple choice. Answers are explained after each question.</p>
+  <div class="row"><select id="quizTopic" aria-label="Filter quiz by topic"></select><button class="btn pri" id="startQuiz">Start quiz</button></div>
+  <div id="quizBody"></div>
+</section>
+
+<script>
+/* ---------- content ---------- */
+var TOPICS = [
+{id:"physical",unit:"Unit 2, Topic 1",title:"The Physical Self",
+ lead:"The physical self is the body: the tangible dimension of a person that can be directly observed. It strongly shapes self-esteem, your sense of personal worth and acceptance of who you are.",
+ blocks:[
+ {t:"h",x:"Self-esteem and the body"},
+ {t:"ul",x:["Self-concept is what you know about yourself, including your ability to care for your own needs.","Gordon (2000) lists four components of self-esteem: a sense of **identity**, **belonging** (connectedness), **uniqueness**, and **self (power)**.","Marshall (1989): low self-image is linked to poor mental health, poor academic achievement, and delinquency.","Self-image is based on how society views individuals, and the quality of human interactions is essential."]},
+ {t:"h",x:"The biological blueprint"},
+ {t:"table",h:["Term","Meaning"],r:[["Heredity","Transmission of traits from parents to offspring"],["Genotype","Information embedded in your genes; not every genotype shows physically"],["Phenotype","The physical expression of a trait"],["Chromosomes","23 pairs; the 23rd pair (sex chromosomes) determines sex"],["DNA","Nucleic acid in chromosomes holding genetic instructions"],["Maturation","Completion of growth of a genetic character; unfolding of inherent potential"]]},
+ {t:"h",x:"Environmental conditioning"},
+ {t:"ul",x:["Family is the first social group and the foundation of development.","Larger social groups bring new standards, so people act to be attractive and acceptable.","Media shows slim bodies as ideal for women and muscular bodies for men; some adolescents use unhealthy habits to reach them.","Beauty is skin-deep: what matters is feeling good and holding a healthy view of your worth."]},
+ {t:"h",x:"How beauty is defined around the world"},
+ {t:"table",h:["Place","Ideal"],r:[["Ethiopia (Karo)","Body scars cut on women’s stomachs in childhood"],["Kenya (Masai)","Long stretched earlobes, shaved heads"],["Burma and Thailand (Kayan)","Long necks from brass coils added yearly from age 5"],["China, Thailand, Japan","Pale skin as a sign of affluence"],["New Zealand (Maori)","Face tattoos (Tamoko)"],["Mauritania","Full figures"],["Iran","Surgical bandages; rhinoplasty as social status"],["India","Decorated skin: nose rings, bindis, henna, kumkum"],["Japan","Stick-straight hair"]]},
+ {t:"h",x:"Achieving physical well-being"},
+ {t:"ol",x:["Healthy eating","Embracing a healthy lifestyle (walking, running, gym, sports)","Maintaining proper hygiene","Being confident: loving and accepting who you are"]}
+ ]},
+{id:"sexual",unit:"Unit 2, Topic 2",title:"The Sexual Self",
+ lead:"Sexual self-concept is the totality of yourself as a sexual being. Anna Freud: “Sex is something you do. Sexuality is something you are.”",
+ blocks:[
+ {t:"p",x:"Three dimensions: **sexual self-esteem**, **sexual depression**, and **sexual preoccupation**. Attachment style moderates sense-of-self and the relationships we tend to get into."},
+ {t:"h",x:"Primary vs. secondary sexual characteristics"},
+ {t:"table",h:["","Primary","Secondary"],r:[["What","Directly involved in reproduction (sex organs)","Appear at puberty; not used in reproduction"],["When","Present from birth; grow in puberty","Emerge during puberty"],["Purpose","Reproduction","Attract a mate or help care for offspring; distinguish the sexes"],["Examples","Penis, vagina, testes, ovaries","Breasts, body hair, voice change, muscle growth, wider hips"]]},
+ {t:"ul",x:["Sex is set by chromosomes: an X sperm gives ovaries (female); a Y sperm gives testes (male) (Reid, 2018).","Hormones secreted through the hypothalamus start secondary traits.","Boys: voice changes after some pubic hair appears; muscles grow markedly; sebaceous glands can cause acne.","Girls: hips widen, then breasts develop, then pubic hair; axillary hair appears after menarche; the voice becomes fuller."]},
+ {t:"h",x:"Libido and the sexual response"},
+ {t:"ul",x:["**Libido** is overall sexual drive. It is influenced by biological, psychological, and social factors: hormones, work and family, personality and stress, medical conditions, medications, pregnancy, relationship issues.","A person with no sexual feelings at all may be asexual."]},
+ {t:"h",x:"The brain’s four levels"},
+ {t:"table",h:["Level","Function"],r:[["Brain stem","Oldest structure; primitive responses; circuits for love/attachment, joy, sexual excitement"],["Hypothalamus","Regulates hormones; controls the pituitary (master gland); links endocrine and nervous systems"],["Limbic system","Learning, memory, emotion. Amygdala links experiences to emotions; hippocampus stores event memories"],["Cerebral cortex","Neocortex; thinking, speech, decision-making, sensory processing"]]},
+ {t:"p",x:"Lobes: **frontal** (cognition, voluntary movement), **parietal** (temperature, taste, touch, movement), **temporal** (memories with sensations), **occipital** (vision). The corpus callosum connects the hemispheres."},
+ {t:"h",x:"Premarital sex and love"},
+ {t:"ul",x:["Module-listed consequences: early or unwanted pregnancy, societal gossip and condemnation, STI and HIV/AIDS risk, and a moral or religious concern.","Ways to avoid it: educate yourself, weigh consequences, seek guidance from parents and school.","Three levels of romantic love: **lust, attraction, attachment**."]},
+ {t:"h",x:"Sexually transmitted infections"},
+ {t:"p",x:"WHO estimates over 1 million people get an STI every day. “STI” is preferred over “STD” because infection may not cause obvious disease, and most people have no symptoms. Untreated STIs can cause cervical cancer, liver disease, PID, infertility, and pregnancy problems."},
+ {t:"table",h:["STI","Cause","Key points"],r:[["Chlamydia","Bacterium","Often no symptoms; antibiotics; untreated can cause PID and infertility"],["Genital warts","HPV virus","Can lead to cervical and other cancers; screening and HPV vaccines"],["Gonorrhea","Bacterium","Yellow/green discharge, burning urination; antibiotics"],["Herpes","Virus (HSV-1, HSV-2)","Painful blisters; no cure; antivirals reduce outbreaks; spreads even without visible sores"],["HIV","Virus","Causes AIDS; testing is routine care"],["Syphilis","Bacterium","Primary (chancres), secondary (rash, hair loss), latent stages; antibiotics"],["Chancroid","Bacterium","Genital sores, swollen groin lymph nodes; antibiotics"],["Hepatitis A, B, C","Viruses","Liver inflammation; vaccine for A and B, none for C"],["Pubic lice","Lice","Intense itching; over-the-counter treatment; wash bedding in hot water"],["Trichomoniasis","Protozoa","Foamy, foul-smelling discharge; antibiotics"]]},
+ {t:"h",x:"Responsible sexual behavior"},
+ {t:"ol",x:["Respect for one’s body","Maturity in thoughts and deeds","Being guided by personal beliefs and core values","Being future-oriented"]},
+ {t:"p",x:"**Sex vs. gender:** biological sex is assigned at birth from physical features; gender is an identity that is learned and embraced. Gender roles are societal expectations of how men and women act."},
+ {t:"note",x:"Not in your uploads, so check class notes: four phases of the sexual response cycle, erogenous zones, reproductive system parts, contraception and family planning."}
+ ]},
+{id:"nervous",unit:"Unit 2, Topic 2 (slides)",title:"The Nervous System",
+ lead:"A network of neurons that generates, modulates, and transmits information between all body parts. It underlies vital functions, sensation, movement, consciousness, cognition, behavior, and memory.",
+ blocks:[
+ {t:"p",x:"Two cell types: **neurons** and **glial cells**."},
+ {t:"h",x:"Parts of a neuron"},
+ {t:"table",h:["Part","Role"],r:[["Axon","Long; conducts impulses away from the cell body"],["Dendrites","Short; receive impulses and conduct them toward the cell body"],["Cell body","Main body of the nerve cell"],["Myelin sheath","Covering around the axon"],["Node of Ranvier","Gap in the myelin sheath"]]},
+ {t:"h",x:"Two types of neurons"},
+ {t:"table",h:["Type","Also called","Direction"],r:[["Efferent","Motor, descending","CNS to peripheral tissues, instructing them"],["Afferent","Sensory, ascending","Peripheral tissues to CNS, carrying sensory information"]]},
+ {t:"h",x:"Divisions"},
+ {t:"ul",x:["**CNS**: integration and command center of the body.","**PNS**: conduit between CNS and body; 12 pairs of cranial nerves and 31 pairs of spinal nerves.","**Somatic** (voluntary): voluntary movement and sensation from skin, muscles, joints.","**Autonomic** (involuntary): visceral motor fibers only; sympathetic and parasympathetic systems."]}
+ ]},
+{id:"material",unit:"Unit 2, Topic 3",title:"The Material Self",
+ lead:"The material self is made of tangible objects, people, or places you call “mine” (William James). Possessions extend the self, hence “I shop, therefore I am.”",
+ blocks:[
+ {t:"h",x:"Four functions of possessions"},
+ {t:"table",h:["Function","What it does","Example"],r:[["Instrumental","Serves a practical purpose","A van for family and business"],["Social symbolic","Signals qualities, standing, group, gender role","Choosing an iPhone over other brands"],["Categorical","Communicates group membership and status","A condo in Makati City"],["Self-expressive","Shows unique qualities, values, attitudes","Collecting Hello Kitty items"]]},
+ {t:"h",x:"Needs, wants, utility, significance"},
+ {t:"ul",x:["**Needs** are for survival (food, clothing, shelter); **wants** are luxuries.","People weigh **utility** (practical purpose) and **significance** (assigned meaning).","Roland Barthes (semiology): people assert identity through objects, which also signal relationships and status.","Biological view: hypothalamus “I need that,” amygdala “I want this,” prefrontal cortex checks."]},
+ {t:"h",x:"Freud: id, ego, superego"},
+ {t:"table",h:["Part","Principle","Role"],r:[["Id (“it”)","Pleasure principle","From birth; impulsive drives (hunger, thirst, sex); wants immediate gratification"],["Ego (“I”)","Reality principle","Rational, conscious; balances id, reality, and superego"],["Superego (“over-I”)","Morality","Learned values from parents and society; strives for perfection; guilt or pride"]]},
+ {t:"h",x:"Maslow’s hierarchy (bottom to top)"},
+ {t:"ol",x:["**Physiological**: breathing, food, water, sex, sleep, homeostasis, excretion","**Safety**: safe area, financial reserves, job security, good health","**Love and belonging**: family, friendship, sexual intimacy","**Esteem**: self-respect and achievement (internal); status, reputation, recognition (external)","**Self-actualization**: full potential; never fully satisfied because people keep growing"]},
+ {t:"p",x:"Lower needs must be satisfied before higher ones. Maslow created the hierarchy in 1954 (*Motivation and Personality*)."},
+ {t:"h",x:"The endowment effect"},
+ {t:"ul",x:["People value what they own more than identical things they don’t own; owners demand more to sell than they would pay to buy.","Identified by economist **Richard Thaler**; closely tied to **loss aversion**.","Causes: psychological ownership, loss aversion, familiarity, identity.","Examples: a free mug you refuse to sell cheaply; homeowners overvaluing their houses.","Effects: irrational financial decisions, hoarding unused items, reluctance to compromise, market inefficiency."]},
+ {t:"note",x:"Not in your uploads: the signs of a materialistic person and ways to avoid materialism. Check class notes."}
+ ]},
+{id:"spiritual",unit:"Unit 2, Topic 4",title:"The Spiritual Self",
+ lead:"Spirituality is the third aspect of the whole person, beside the physical and psychological: an ongoing personal journey of seeking meaning and connection to the self, others, nature, and the sacred.",
+ blocks:[
+ {t:"h",x:"Spirituality vs. religiosity"},
+ {t:"table",h:["Spirituality","Religiosity"],r:[["Individual","Communal"],["Personal quest, compassion, service, inner peace","Adherence to a belief system, practices, and a specific community"],["Possible without any religion","Includes prescribed practices and proscriptions"]]},
+ {t:"p",x:"A person can be spiritual without being religious. People are not born spiritual; it is acquired through personal, social, and environmental factors."},
+ {t:"h",x:"Definitions"},
+ {t:"table",h:["Author","Idea"],r:[["Puchalski (2014)","Seeking meaning and connection to self, others, the moment, and the sacred"],["Beauregard and O’Leary (2007)","Experience that brings contact with the divine"],["Sinnott (2002)","Personal relation to the sacred that informs other relationships and life’s meaning"],["Myers et al. (2000)","Private beliefs that transcend the material and give wholeness"]]},
+ {t:"h",x:"Four stages (Wallas)"},
+ {t:"ol",x:["**Anything Goes**: manipulative, self-serving, narcissistic","**Rigid**: firm external rules; a legalistic, punishing God","**Questioning**: what seemed untouchable is challenged; fear of falling back","**Free Flowing**: acceptance, peace, interconnectedness"]},
+ {t:"p",x:"Do not rush the stages; wanting to move quickly is often an ego need."},
+ {t:"h",x:"Nine sacred pathways"},
+ {t:"table",h:["Pathway","Closest to God when…"],r:[["Naturalist","In creation: mountains, forests, oceans"],["Intellectual","Learning something new about Him"],["Ascetic","Alone in solitude and simplicity"],["Sensate","Senses come alive in worship"],["Activist","Standing up for justice"],["Caregiver","Serving the needy, sick, lonely"],["Contemplative","Adoring Him; emotions awakened"],["Enthusiast","Celebrating with mystery and joy"],["Traditionalist","Participating in ritual and symbol"]]},
+ {t:"h",x:"Frankl’s meaning triangle"},
+ {t:"ul",x:["**Creative**: what you give to life (a work or deed)","**Experiential**: what you take from life (experiences, encounters)","**Attitudinal**: your attitude toward unavoidable suffering; the last human freedom is choosing your attitude"]},
+ {t:"p",x:"**Carrot, egg, coffee bean:** boiling water softens the carrot, hardens the egg’s inside, but the coffee bean changes the water."},
+ {t:"h",x:"Nature, well-being, life satisfaction"},
+ {t:"ul",x:["**Affinity with nature**: emotional ties; nature connectedness means nature is part of your identity.","**Ecopsychology**: transpersonal relationship with nature; contact with nature can heal.","**Well-being**: inner construct tied to self-esteem; **life satisfaction**: general attitude toward life (Diener et al., 1999).","High well-being: effective self-perception, realistic self-esteem, behavior control, true perception of the world, sustained relationships, self-direction."]}
+ ]},
+{id:"political",unit:"Unit 2, Topic 5",title:"The Political Self",
+ lead:"Understanding yourself as a Filipino. Claro M. Recto: nationalism is nourished by a sense of history. Audre Lorde: caring for yourself is “an act of political warfare.”",
+ blocks:[
+ {t:"h",x:"Who is a Filipino? (1987 Constitution, Art. IV, Sec. 1)"},
+ {t:"ul",x:["Born in the Philippines","Parents are citizens of the Philippines","Born before January 17, 1973, of Filipino mothers who elect citizenship at majority age","Naturalized in accordance with law"]},
+ {t:"p",x:"Citizenship alone isn’t enough; values and traits must be manifested."},
+ {t:"h",x:"Filipino values"},
+ {t:"table",h:["Value","Meaning"],r:[["Utang na loob","Gratitude for a favor; a debt never fully paid, can last generations"],["Hiya","Dependence on what others think; social approval and belonging"],["Bahala na","Leaving the rest to a higher power for what you can’t control"],["Bayanihan","Helping others in the community without payment"],["Compadre system","Friends get priority for favors like jobs or promotions"]]},
+ {t:"h",x:"What shapes Filipino identity"},
+ {t:"ol",x:["**Family**: first world of a child","**School**: crystallizes home values; at least 17 years for a degree","**Church**: spiritual influence on views and actions","**Peer group**: “tell me who your friends are…”","**Media**: about 4 h 12 min daily on social media vs. 2 h 16 min global (Adel, 2019)"]},
+ {t:"h",x:"Politics and active citizenship"},
+ {t:"ul",x:["Politics concerns power; it depends on context; the political is personal. Aristotle: man is a political animal.","**Active citizenship**: structured and everyday participation in decisions affecting you and your community; a practice of democracy; aims to influence society.","It builds belonging and, for youth, efficacy, integrity, compassion, and a sense of justice.","**Nationalism**: identification with one’s nation and support for its interests."]}
+ ]},
+{id:"digital",unit:"Unit 2, Topic 6",title:"The Digital Self",
+ lead:"Your digital self is the personality you use online. It may differ from your real-world self or match it. Daniel Goleman: digital overload wears out self-control.",
+ blocks:[
+ {t:"h",x:"Evaluating your profile (Me on FB)"},
+ {t:"ul",x:["**Online behavior**: up to date? regular and consistent posts?","**Online voice**: controversial, contentious, inappropriate? adding value?","**Online presentation**: fonts, styles, and images; professional visual image?"]},
+ {t:"h",x:"Key concepts"},
+ {t:"table",h:["Term","Meaning"],r:[["Digital natives","Millennials, born in an era of rapid technological change"],["Digital citizenship","Responsible tech use; 3 principles: respecting, educating, protecting self and others"],["Online disinhibition","Less restraint online than in person"],["Benign disinhibition","Sharing more than usual, or going out of your way to help"],["Toxic disinhibition","Rudeness, bullying, threats, visiting violent or pornographic sites"],["Online disembodiment","No physical presence, so people show fewer real selves to strangers"],["Role identity","Roles you take as a member of a social group"]]},
+ {t:"h",x:"Responsible online behavior"},
+ {t:"ol",x:["Don’t post anything that will embarrass you","Avoid posting under strong emotions","Avoid the “wrong crowd” online and offline","Don’t overshare confidential information","Respect others online"]}
+ ]},
+{id:"student",unit:"Unit 3, Topic 1",title:"Learning to Be a Better Student",
+ lead:"Study smarter, not harder: combine time management, study habits, self-discipline, and self-efficacy.",
+ blocks:[
+ {t:"p",x:"**Self-efficacy** (Albert Bandura, Social Cognitive Theory) is your belief in your capacity to carry out the behaviors needed for specific performance goals."},
+ {t:"h",x:"Five sources of self-efficacy"},
+ {t:"table",h:["Source","Meaning"],r:[["Mastery experience","Success from dedicated effort on realistic, challenging goals; learn from failure"],["Vicarious experience","Learning from role models; seeing similar people succeed"],["Social persuasion","Others directly influencing you; the right mentor"],["Emotional states","Arousal such as anxiety changes beliefs about ability"],["Imaginal experiences","Visualizing success (Maddux, 2013)"]]},
+ {t:"h",x:"Three zones"},
+ {t:"ul",x:["**Panic zone**: beyond your abilities; lowers self-efficacy","**Comfort zone**: skillful, but no growth","**Stretch zone**: challenging but possible; builds self-efficacy"]},
+ {t:"h",x:"Improving self-efficacy"},
+ {t:"ol",x:["Set goals above your abilities (stretch zone)","Break goals into small pieces","Focus on the main goals","Think positive","Take control of your life"]},
+ {t:"h",x:"Study habits"},
+ {t:"ol",x:["Plan a fixed study schedule","Never cram; space sessions","Set a specific objective for each session","Don’t procrastinate","Start with the most difficult subject","Remove distractions","Join study groups","Review notes over the weekend"]}
+ ]},
+{id:"goals",unit:"Unit 3, Topic 2",title:"Setting Goals for Success",
+ lead:"Motivation is the set of psychological forces that determine the direction, effort, and persistence of behavior (Osland et al., 2007).",
+ blocks:[
+ {t:"ul",x:["**Intrinsic** motivation: you enjoy the activity itself.","**Extrinsic** motivation: you act for consequences such as money or gifts."]},
+ {t:"h",x:"Theories of motivation"},
+ {t:"table",h:["Theory","Key idea"],r:[["Maslow","Needs form a hierarchy; satisfy lower before higher"],["McClelland","Three motives: affiliation, power, achievement"],["Reinforcement (Skinner)","Rewarded behavior continues; operant conditioning"],["Goal-setting (Locke)","Clear goals spark motivation"]]},
+ {t:"h",x:"McClelland’s three needs"},
+ {t:"table",h:["Motive","Traits"],r:[["Affiliation","Wants to belong and be liked; prefers collaboration; dislikes risk"],["Power","Wants to influence others; likes competition and status. Personal power controls people; institutional power organizes teams"],["Achievement","Sets challenging goals; calculated risks; wants feedback; often works alone"]]},
+ {t:"h",x:"Locke’s findings"},
+ {t:"ol",x:["Specific goals increase performance","Accepted difficult goals raise performance","Feedback beats no feedback","People commit to goals that are public and self-set"]},
+ {t:"p",x:"Goals should be challenging but feasible."}
+ ]},
+{id:"health",unit:"Unit 3, Topic 3",title:"Taking Charge of Your Health",
+ lead:"Health is complete physical, mental, and social well-being, not merely the absence of disease (WHO, 2001).",
+ blocks:[
+ {t:"h",x:"Stress and the body"},
+ {t:"ul",x:["Fight-or-flight: the sympathetic system releases epinephrine and norepinephrine.","The pituitary releases ACTH, which prompts the adrenal cortex to release glucocorticoids, mainly **cortisol**.","Prolonged stress harms organs, mental function, and the immune system."]},
+ {t:"h",x:"Three perspectives on health (Rice)"},
+ {t:"table",h:["Perspective","Idea"],r:[["Biomedical","Anatomy, germ theory, genetics"],["Psychosocial","Psychological and social processes affect illness"],["Biopsychosocial (Engel, 1977)","Biological, psychological, and social influences combined"]]},
+ {t:"ul",x:["**Type A** behavior is linked to coronary heart disease (Friedman and Rosenman, 1974).","Hostile people show bigger heart rate, blood pressure, and hormone spikes under stress (Smith)."]},
+ {t:"h",x:"Coping"},
+ {t:"ul",x:["**Eustress** is positive stress; **distress** is negative.","Coping manages the problem and regulates the emotions (Lazarus and Folkman, 1984).","**Resilience** is bouncing back from hard times."]},
+ {t:"table",h:["Style","Description"],r:[["Avoidance coping","Denying illness or stress; linked to worse health outcomes"],["Positive coping","Seeking support, talking it out, finding meaning; better outcomes"]]},
+ {t:"h",x:"Self-compassion (Abrams, 2017)"},
+ {t:"ol",x:["Treat yourself as you would a small child","Practice mindfulness","Remember you are not alone","Give yourself permission to be imperfect"]},
+ {t:"p",x:"Self-soothing uses the five senses: smell, sight, hearing, taste, touch."}
+ ]},
+{id:"people",unit:"Reference",title:"Who Said What",
+ lead:"The names most likely to show up on an exam.",
+ blocks:[
+ {t:"table",h:["Person","Contribution"],r:[["Anna Freud","“Sex is something you do. Sexuality is something you are.”"],["William James","Material self: things called “mine”"],["Roland Barthes","Semiology; identity through objects"],["Sigmund Freud","Id, ego, superego"],["Abraham Maslow","Hierarchy of needs (1954)"],["Richard Thaler","Endowment effect"],["Wallas","Four stages of spirituality"],["Victor Frankl","Meaning triangle"],["Claro M. Recto","Nationalism and history"],["Aristotle","Man is a political animal"],["Albert Bandura","Self-efficacy"],["James Maddux","Imaginal experiences"],["Edwin Locke","Goal-setting theory"],["McClelland","Affiliation, power, achievement"],["Skinner","Operant conditioning"],["Engel (1977)","Biopsychosocial model"],["Friedman and Rosenman","Type A behavior"],["Lazarus and Folkman","Functions of coping"],["Gordon (2000)","Four components of self-esteem"]]}
+ ]}
+];
+
+var CARDS = [
+["physical","What are Gordon’s four components of self-esteem?","Identity, belonging (connectedness), uniqueness, and self (power)."],
+["physical","Genotype vs. phenotype?","Genotype is the information in your genes; phenotype is its physical expression."],
+["physical","Which pair of chromosomes determines sex?","The 23rd pair, the sex chromosomes."],
+["physical","What is maturation?","Completion of growth of a genetic character; unfolding of inherent traits or potential."],
+["physical","Name the Kayan beauty ideal.","Long necks created with heavy brass rings, started at age 5 (Burma and Thailand)."],
+["sexual","Primary vs. secondary sexual characteristics?","Primary: sex organs directly involved in reproduction, present from birth. Secondary: features that emerge at puberty, used to attract mates, not for reproduction."],
+["sexual","What are the three dimensions of sexual self-concept?","Sexual self-esteem, sexual depression, sexual preoccupation."],
+["sexual","What is libido?","A person’s overall sexual drive or desire, shaped by biological, psychological, and social factors."],
+["sexual","What does the hypothalamus do in sexual response?","Regulates hormone production and controls the pituitary gland, linking endocrine and nervous systems."],
+["sexual","What do the amygdala and hippocampus do?","Amygdala links experiences with emotions; hippocampus organizes and stores event memories."],
+["sexual","Name the four lobes of the cortex and a function of each.","Frontal: cognition and voluntary movement. Parietal: touch, temperature, taste. Temporal: memory and sensations. Occipital: vision."],
+["sexual","Three levels of romantic love?","Lust, attraction, attachment."],
+["sexual","Why prefer “STI” over “STD”?","An infection may not cause obvious disease, and most people with STIs have no symptoms."],
+["sexual","Which STIs have vaccines?","HPV, hepatitis A, and hepatitis B."],
+["sexual","Stages of syphilis?","Primary (chancres), secondary (rash, hair loss), latent (no visible symptoms but organ damage)."],
+["sexual","Four parts of responsible sexual behavior?","Respect for one’s body, maturity, guided by personal beliefs and values, future-oriented."],
+["nervous","Axon vs. dendrite?","Axons conduct impulses away from the cell body; dendrites receive impulses toward it."],
+["nervous","Efferent vs. afferent neurons?","Efferent (motor) carry impulses from CNS to tissues; afferent (sensory) carry from tissues to CNS."],
+["nervous","Somatic vs. autonomic nervous system?","Somatic is voluntary; autonomic is involuntary (sympathetic and parasympathetic)."],
+["material","Who defined the material self?","William James: tangible things, people, or places designated “mine.”"],
+["material","Four functions of possessions?","Instrumental, social symbolic, categorical, self-expressive."],
+["material","Id, ego, superego principles?","Id: pleasure. Ego: reality. Superego: morality."],
+["material","Maslow’s five levels, bottom to top?","Physiological, safety, love/belonging, esteem, self-actualization."],
+["material","What is the endowment effect?","Valuing owned objects more than identical ones you don’t own; tied to loss aversion (Richard Thaler)."],
+["material","Causes of the endowment effect?","Psychological ownership, loss aversion, familiarity, identity."],
+["material","Utility vs. significance?","Utility is practical purpose; significance is the meaning assigned to an object."],
+["spiritual","Spirituality vs. religiosity?","Spirituality is individual and personal; religiosity is communal adherence to a belief system."],
+["spiritual","Wallas’s four stages?","Anything Goes, Rigid, Questioning, Free Flowing."],
+["spiritual","Frankl’s three sources of meaning?","Creative (what you give), experiential (what you take), attitudinal (attitude toward suffering)."],
+["spiritual","Which one are you in the coffee bean story, ideally?","The coffee bean: it changes the water (the circumstances)."],
+["spiritual","Affinity with nature vs. ecopsychology?","Affinity is emotional connection; ecopsychology is a transpersonal, philosophical relationship with healing potential."],
+["spiritual","Well-being vs. life satisfaction?","Well-being is how good you feel about yourself; life satisfaction is general attitude toward life."],
+["political","Who is a Filipino under the 1987 Constitution?","Born in the Philippines, citizen parents, born before Jan 17, 1973 of Filipino mother who elects citizenship, or naturalized."],
+["political","Define utang na loob.","Gratitude for a favor; a debt never fully paid that can last generations."],
+["political","Define hiya.","Concern about others’ opinions; social approval and belonging."],
+["political","Define bahala na.","Leaving the rest to a higher power for what is beyond your control."],
+["political","Define bayanihan.","Helping others in the community without payment."],
+["political","Five agents of identity formation?","Family, school, church, peer group, media."],
+["political","What is active citizenship?","Structured and everyday participation in decisions that affect your life and community."],
+["digital","Benign vs. toxic disinhibition?","Benign: self-disclosing more or helping. Toxic: rudeness, bullying, threats, harmful sites."],
+["digital","Three principles of digital citizenship?","Respecting, educating, and protecting oneself and others."],
+["digital","What is online disembodiment?","Acting differently online because no physical presence is needed."],
+["student","Define self-efficacy and its author.","Belief in your capacity to execute behaviors for specific attainments; Albert Bandura."],
+["student","Five sources of self-efficacy?","Mastery, vicarious experience, social persuasion, emotional states, imaginal experiences."],
+["student","Panic, comfort, stretch zone: which builds self-efficacy?","The stretch zone: challenging but possible."],
+["goals","McClelland’s three motives?","Affiliation, power, achievement."],
+["goals","Four findings of Locke’s research?","Specific goals help; difficult accepted goals help; feedback helps; public self-set goals gain commitment."],
+["goals","Intrinsic vs. extrinsic motivation?","Intrinsic: enjoyment of the activity. Extrinsic: rewards or consequences."],
+["health","Hormone most important in the stress response?","Cortisol (a glucocorticoid released by the adrenal cortex after ACTH)."],
+["health","Biopsychosocial model?","Engel (1977): health and illness result from biological, psychological, and social influences."],
+["health","Avoidance vs. positive coping?","Avoidance denies the stress; positive coping seeks support and meaning."],
+["health","Four ways to develop self-compassion?","Treat yourself like a small child, practice mindfulness, remember you’re not alone, permit imperfection."],
+["health","Eustress vs. distress?","Eustress is the positive outcome of stress; distress is the negative one."]
+];
+
+var QUIZ = [
+["physical","Which is the sex chromosome pair?",["The 1st pair","The 12th pair","The 23rd pair","The 46th pair"],2,"Each person has 23 pairs; the 23rd pair determines sex."],
+["physical","The physical expression of a trait is called the…",["Genotype","Phenotype","Heredity","Maturation"],1,"Phenotype is the expressed trait; genotype is the underlying genetic information."],
+["sexual","Which are secondary sexual characteristics?",["Ovaries and testes","Penis and vagina","Voice change and body hair","Chromosomes"],2,"Secondary characteristics emerge at puberty and aren’t used in reproduction."],
+["sexual","Which brain structure is called the master gland’s controller?",["Amygdala","Hippocampus","Hypothalamus","Occipital lobe"],2,"The hypothalamus controls the pituitary, the master gland."],
+["sexual","Which lobe is primarily responsible for vision?",["Frontal","Parietal","Temporal","Occipital"],3,"The occipital lobe processes vision."],
+["sexual","Which STI has no vaccine and can become chronic?",["Hepatitis B","Hepatitis A","Hepatitis C","HPV"],2,"There are vaccines for hepatitis A and B, not for C."],
+["nervous","Neurons that carry impulses from the CNS to tissues are…",["Afferent","Efferent","Glial","Sensory"],1,"Efferent (motor) neurons carry instructions outward."],
+["material","“Buying a condo in Makati” is which function of possessions?",["Instrumental","Categorical","Self-expressive","Superego"],1,"Categorical possessions communicate group membership and status."],
+["material","Which part of Freud’s personality follows the reality principle?",["Id","Ego","Superego","Libido"],1,"The ego balances the id’s demands with reality."],
+["material","In Maslow’s hierarchy, job security belongs to…",["Physiological","Safety","Esteem","Self-actualization"],1,"Safety needs include job security, finances, and good health."],
+["material","The endowment effect was identified by…",["Richard Thaler","William James","Roland Barthes","Edwin Locke"],0,"Thaler, a behavioral economist, linked it to loss aversion."],
+["spiritual","Which Wallas stage is marked by fear of falling back to Stage 1?",["Rigid","Anything Goes","Questioning","Free Flowing"],2,"In Questioning, people often retreat to the safety of Rigid."],
+["spiritual","Frankl’s attitudinal source of meaning is about…",["What you give to life","What you take from life","Attitude toward unavoidable suffering","Religious rituals"],2,"The last human freedom is choosing one’s attitude."],
+["spiritual","Which statement is true?",["Spirituality requires religion","Religiosity is individual","A person can be spiritual without being religious","They are identical"],2,"Spirituality is individual and can exist without religion."],
+["political","Helping others in the community without payment is…",["Hiya","Bayanihan","Bahala na","Utang na loob"],1,"Bayanihan comes from “bayan,” meaning community."],
+["political","A debt of gratitude that can last generations is…",["Utang na loob","Compadre system","Hiya","Bahala na"],0,"Utang na loob can never be fully repaid."],
+["digital","Rude language and bullying online is…",["Benign disinhibition","Toxic disinhibition","Digital citizenship","Disembodiment"],1,"Toxic disinhibition covers rudeness, bullying, and threats."],
+["student","Self-efficacy is anchored on whose theory?",["Freud","Maslow","Bandura","Locke"],2,"Albert Bandura’s Social Cognitive Theory."],
+["student","Which zone builds self-efficacy?",["Panic","Comfort","Stretch","Safe"],2,"The stretch zone is challenging but possible."],
+["goals","Which need is marked by wanting regular feedback and calculated risks?",["Affiliation","Power","Achievement","Esteem"],2,"Those are McClelland’s achievement traits."],
+["goals","Who proposed goal-setting theory?",["Skinner","Edwin Locke","McClelland","Maslow"],1,"Edwin Locke: clear goals spur motivation."],
+["health","Which is the key glucocorticoid in the stress response?",["Epinephrine","Norepinephrine","Cortisol","ACTH"],2,"ACTH prompts the adrenal cortex to release cortisol."],
+["health","Engel’s biopsychosocial model says health depends on…",["Biology only","Biological, psychological, and social influences","Germs only","Personality only"],1,"It integrates the biomedical and psychosocial views."],
+["health","Which is a positive coping strategy?",["Denying the illness","Seeking support","Ignoring stress","Pessimism"],1,"Positive coping involves seeking help and finding meaning."]
+];
+
+/* ---------- helpers ---------- */
+function md(s){return s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\*(.+?)\*/g,"<em>$1</em>")}
+function el(id){return document.getElementById(id)}
+function store(k,v){try{if(v===undefined){return JSON.parse(localStorage.getItem(k))}localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+var reviewed = store("uts-reviewed") || {};
+
+/* ---------- theme ---------- */
+(function(){
+  var t=store("uts-theme"); if(t){document.documentElement.setAttribute("data-theme",t)}
+  el("themeBtn").addEventListener("click",function(){
+    var cur=document.documentElement.getAttribute("data-theme");
+    var dark=cur?cur==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var next=dark?"light":"dark";
+    document.documentElement.setAttribute("data-theme",next); store("uts-theme",next);
+  });
+})();
+
+/* ---------- read view ---------- */
+function blockHTML(b){
+  if(b.t==="h")return "<h3>"+md(b.x)+"</h3>";
+  if(b.t==="p")return "<p>"+md(b.x)+"</p>";
+  if(b.t==="note")return "<div class=\"note\">"+md(b.x)+"</div>";
+  if(b.t==="ul"||b.t==="ol")return "<"+b.t+">"+b.x.map(function(i){return "<li>"+md(i)+"</li>"}).join("")+"</"+b.t+">";
+  if(b.t==="table"){
+    return "<div class=\"tw\"><table><thead><tr>"+b.h.map(function(h){return "<th>"+h+"</th>"}).join("")+"</tr></thead><tbody>"+
+      b.r.map(function(r){return "<tr>"+r.map(function(c){return "<td>"+md(c)+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table></div>";
+  }
+  return "";
+}
+function topicText(t){return (t.title+" "+t.lead+" "+JSON.stringify(t.blocks)).toLowerCase()}
+function renderRead(){
+  var q=el("search").value.trim().toLowerCase();
+  var list=TOPICS.filter(function(t){return !q||topicText(t).indexOf(q)>-1});
+  el("topics").innerHTML=list.length?list.map(function(t){
+    var done=!!reviewed[t.id];
+    return "<article class=\"topic\" id=\"t-"+t.id+"\"><div class=\"topic-hd\"><div><h2>"+t.title+"</h2><p class=\"unit\">"+t.unit+"</p></div>"+
+      "<button class=\"btn\" data-done=\""+t.id+"\" aria-pressed=\""+done+"\">"+(done?"Reviewed":"Mark as reviewed")+"</button></div>"+
+      "<p class=\"lead\">"+md(t.lead)+"</p>"+t.blocks.map(blockHTML).join("")+"</article>";
+  }).join(""):"<p class=\"empty\">No topics match “"+q.replace(/</g,"&lt;")+"”. Try a shorter word.</p>";
+  renderNav(list);
+  updateProgress();
+}
+function renderNav(list){
+  var groups=[["Unit 2",TOPICS.slice(0,6)],["Unit 3",TOPICS.slice(6,10)],["Reference",TOPICS.slice(10)]];
+  var shown={}; list.forEach(function(t){shown[t.id]=1});
+  el("nav").innerHTML=groups.map(function(g){
+    var items=g[1].filter(function(t){return shown[t.id]});
+    if(!items.length)return "";
+    return "<div class=\"grp\">"+g[0]+"</div>"+items.map(function(t){
+      return "<a href=\"#t-"+t.id+"\" data-nav=\""+t.id+"\" class=\""+(reviewed[t.id]?"done":"")+"\"><span>"+t.title+"</span><span class=\"tick\"></span></a>";
+    }).join("");
+  }).join("");
+}
+function updateProgress(){
+  var n=TOPICS.filter(function(t){return reviewed[t.id]}).length;
+  el("progText").textContent=n+" of "+TOPICS.length+" topics reviewed";
+  el("barFill").style.width=(n/TOPICS.length*100)+"%";
+}
+el("topics").addEventListener("click",function(e){
+  var b=e.target.closest("[data-done]"); if(!b)return;
+  var id=b.getAttribute("data-done");
+  if(reviewed[id]){delete reviewed[id]}else{reviewed[id]=1}
+  store("uts-reviewed",reviewed);
+  b.setAttribute("aria-pressed",!!reviewed[id]); b.textContent=reviewed[id]?"Reviewed":"Mark as reviewed";
+  renderNav(TOPICS.filter(function(t){return el("t-"+t.id)})); updateProgress();
+});
+el("search").addEventListener("input",renderRead);
+el("nav").addEventListener("click",function(e){
+  if(e.target.closest("a")){el("side").classList.remove("open");el("menuBtn").setAttribute("aria-expanded","false")}
+});
+el("menuBtn").addEventListener("click",function(){
+  var o=el("side").classList.toggle("open"); el("menuBtn").setAttribute("aria-expanded",o);
+});
+if("IntersectionObserver" in window){
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(en){
+      if(en.isIntersecting){
+        document.querySelectorAll(".nav a").forEach(function(a){a.classList.toggle("on",a.getAttribute("data-nav")===en.target.id.slice(2))});
+      }
+    });
+  },{rootMargin:"-30% 0px -60% 0px"});
+  var obsTimer;
+  var mo=new MutationObserver(function(){clearTimeout(obsTimer);obsTimer=setTimeout(function(){io.disconnect();document.querySelectorAll(".topic").forEach(function(s){io.observe(s)})},50)});
+  mo.observe(el("topics"),{childList:true});
+}
+
+/* ---------- views ---------- */
+var views={read:el("readView"),cards:el("cardsView"),quiz:el("quizView")};
+document.querySelectorAll(".tab").forEach(function(t){
+  t.addEventListener("click",function(){
+    var v=t.getAttribute("data-view");
+    Object.keys(views).forEach(function(k){views[k].hidden=(k!==v)});
+    document.querySelectorAll(".tab").forEach(function(x){x.setAttribute("aria-selected",x===t)});
+    el("menuBtn").style.display=(v==="read")?"":"none";
+    el("side").classList.remove("open");
+    window.scrollTo(0,0);
+  });
+});
+
+/* ---------- flashcards ---------- */
+function fillSelect(sel,source){
+  var opts="<option value=\"all\">All topics</option>"+TOPICS.filter(function(t){
+    return source.some(function(c){return c[0]===t.id});
+  }).map(function(t){return "<option value=\""+t.id+"\">"+t.title+"</option>"}).join("");
+  sel.innerHTML=opts;
+}
+fillSelect(el("cardTopic"),CARDS); fillSelect(el("quizTopic"),QUIZ);
+var deck=[],ci=0;
+function buildDeck(shuffle){
+  var f=el("cardTopic").value;
+  deck=CARDS.filter(function(c){return f==="all"||c[0]===f});
+  if(shuffle){deck=deck.slice().sort(function(){return Math.random()-.5})}
+  ci=0; showCard();
+}
+function showCard(){
+  el("card").classList.remove("flip");
+  var c=deck[ci]; el("cardQ").textContent=c[1]; el("cardA").textContent=c[2];
+  el("cardCount").textContent="Card "+(ci+1)+" of "+deck.length;
+}
+function flip(){el("card").classList.toggle("flip")}
+el("cardIn").addEventListener("click",flip);
+el("cardTopic").addEventListener("change",function(){buildDeck(false)});
+el("nextCard").addEventListener("click",function(){ci=(ci+1)%deck.length;showCard()});
+el("prevCard").addEventListener("click",function(){ci=(ci-1+deck.length)%deck.length;showCard()});
+el("shuffleCard").addEventListener("click",function(){buildDeck(true)});
+document.addEventListener("keydown",function(e){
+  if(views.cards.hidden)return;
+  if(e.target.tagName==="SELECT")return;
+  if(e.key===" "){e.preventDefault();flip()}
+  if(e.key==="ArrowRight"){el("nextCard").click()}
+  if(e.key==="ArrowLeft"){el("prevCard").click()}
+});
+
+/* ---------- quiz ---------- */
+var qs=[],qi=0,score=0,missed=[];
+function startQuiz(){
+  var f=el("quizTopic").value;
+  qs=QUIZ.filter(function(q){return f==="all"||q[0]===f}).slice().sort(function(){return Math.random()-.5});
+  qi=0;score=0;missed=[];showQ();
+}
+function showQ(){
+  var body=el("quizBody");
+  if(qi>=qs.length){
+    var pct=Math.round(score/qs.length*100);
+    body.innerHTML="<div class=\"score\">"+score+" / "+qs.length+"</div><p>"+pct+"% correct."+(missed.length?" Review these topics:":" Nothing to review.")+"</p>"+
+      (missed.length?"<ul>"+missed.filter(function(v,i,a){return a.indexOf(v)===i}).map(function(id){
+        var t=TOPICS.filter(function(x){return x.id===id})[0]; return "<li>"+t.title+"</li>"}).join("")+"</ul>":"")+
+      "<button class=\"btn pri\" id=\"again\">Try again</button>";
+    el("again").addEventListener("click",startQuiz);
+    return;
+  }
+  var q=qs[qi];
+  body.innerHTML="<div class=\"count\">Question "+(qi+1)+" of "+qs.length+"</div><div class=\"qtext\"></div><div id=\"opts\"></div><div id=\"fb\"></div>";
+  body.querySelector(".qtext").textContent=q[1];
+  q[2].forEach(function(o,i){
+    var b=document.createElement("button"); b.className="opt"; b.textContent=o;
+    b.addEventListener("click",function(){answer(i)});
+    el("opts").appendChild(b);
+  });
+}
+function answer(i){
+  var q=qs[qi],btns=el("opts").children;
+  for(var k=0;k<btns.length;k++){btns[k].disabled=true;if(k===q[3])btns[k].classList.add("ok")}
+  if(i===q[3]){score++}else{btns[i].classList.add("no");missed.push(q[0])}
+  var fb=el("fb");
+  fb.innerHTML="<div class=\"why\"></div><button class=\"btn pri\" id=\"nextQ\">"+(qi+1>=qs.length?"See score":"Next question")+"</button>";
+  fb.querySelector(".why").textContent=(i===q[3]?"Correct. ":"Not quite. ")+q[4];
+  el("nextQ").addEventListener("click",function(){qi++;showQ()});
+  el("nextQ").focus();
+}
+el("startQuiz").addEventListener("click",startQuiz);
+
+/* ---------- init ---------- */
+renderRead();
+buildDeck(false);
+el("quizBody").innerHTML="<p class=\"empty\">Pick a topic and press Start quiz.</p>";
+</script>
+</body>
+</html>
